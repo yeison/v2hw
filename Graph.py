@@ -4,11 +4,11 @@ from opencv import highgui, cv
 from types import NoneType
 
 
-class Graph:
-    def __init__(self, image):
+class Image(cv.CvMat):
+    def __init__(self, filename):
         try:
-            self.image = highgui.cvLoadImage(image, highgui.CV_LOAD_IMAGE_GRAYSCALE)
-            if(type(self.image) == NoneType):
+            self = highgui.cvLoadImage(image, highgui.CV_LOAD_IMAGE_GRAYSCALE)
+            if(type(self) == NoneType):
                 print >> sys.stderr, "  The filename provided does not exist."
                 sys.exit(1)
         except IndexError as e:
@@ -16,34 +16,33 @@ class Graph:
             sys.exit(1)
 
 
-class PixelArray:
-    pxArray = {}
-    def getPixel(theta, coords):
-        return pxArray[coords[0], coords[1], theta]
-    def addPixel(pixelNode):
-        pxArray.append(pixelNode)
+class PixelArray(dict):
+    def copyImage(self, image):
+        width = image.width
+        height = image height
+        for i in width:
+            for j in height:
+                p = PixelNode(i, j, theta, image[i, j])
+                self.addPixel(p)
+    def getPixel(self, x, y, theta):
+        return self[x, y, theta]
+    def addPixel(self, pixel):
+        self[pixel.x, pixel.y, pixel.angle] = pixel
     def __init__(self, imageGraph):
+        dict.__init__(self)
         
         print "Made pxNodeArray" 
+    def __getitem__(self, key):
+        return dict.__getitem__(self, key)
+
 
 #A node is defined by the pixel's location and theta.
 class PixelNode:
     #Fill with u's and v's
-    grayValue = None
-    x = None
-    y = None
-    angle = None
     costFromA = None #maybe?
     
-    def __init__(theta, coords):
-        angle = theta
-        x = coords[0]
-        y = coords[1]
-
-class Coordinates(list):
-    
-    def __init__(self, x, y):
-        self.append(x)
-        self.append(y)
+    def __init__(x, y, theta, grayValue):
+        self.angle = theta
         self.x = x
         self.y = y
+        self.grayValue = grayValue
