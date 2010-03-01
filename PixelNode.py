@@ -2,11 +2,15 @@
 #!/usr/bin/env python
 from opencv import highgui, cv
 from types import NoneType
-from ans1 import dofIA2
-
+from ImageAnalyzer import dofIA2
 
 
 class PixelArray(dict):
+    def contrast(self, pixel):
+        T = 1
+        scale = 3
+        contr = T/(abs(dofIA2(pixel.x, pixel.y, pixel.angle, scale, self.image)) + 1)
+        return contr
     def copyImage(self, image):
         theta = 0
         width = range(image.width)
@@ -15,6 +19,7 @@ class PixelArray(dict):
             for j in height:
                 p = PixelNode(i, j, theta, image[i, j])
                 self.addPixel(p)
+                p.contrast = self.contrast(p)
 
     def getPixel(self, x, y, theta):
         return self[x, y, theta]
@@ -25,8 +30,8 @@ class PixelArray(dict):
     def __init__(self, filename):
         print "Made pxNodeArray" 
         try:
-            image = highgui.cvLoadImage(filename, highgui.CV_LOAD_IMAGE_GRAYSCALE)
-            if(type(image) == NoneType):
+            self.image = highgui.cvLoadImage(filename, highgui.CV_LOAD_IMAGE_GRAYSCALE)
+            if(type(self.image) == NoneType):
                 print >> sys.stderr, "  The filename provided does not exist."
                 sys.exit(1)
         except IndexError as e:
@@ -34,7 +39,7 @@ class PixelArray(dict):
             sys.exit(1)        
         dict.__init__(self)
         self.default = None            
-        self.copyImage(image)
+        self.copyImage(self.image)
         
         def __getitem__(self, key):
             try:
@@ -47,11 +52,8 @@ class PixelArray(dict):
 #A node is defined by the pixel's location and theta.
 class PixelNode(list):
     #Fill with u's and v's
-    costFromA = None #maybe?
-    
-    #Function f(p, theta) = T(s)/|DI(P, theta, s)| + 1
-    def contrast(self):
-        
+    #costFromA = None #maybe?
+    contrast = None
 
     def __init__(self, x, y, theta, grayValue):
         self.append(x)
@@ -71,4 +73,4 @@ class PixelNode(list):
 
 
 pxArray = PixelArray("circle.jpg")
-print  pxArray[5, 3, 0]
+print  pxArray[5, 3, 0].contrast()
