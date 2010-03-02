@@ -8,13 +8,13 @@ from ImageAnalyzer import dofIA2
 class PixelArray(dict):
     def contrast(self, pixel):
         T = 1
-        scale = 3
-        contr = T/(abs(dofIA2(pixel.x, pixel.y, pixel.angle, scale, self.image)) + 1)
+        contr = T/(abs(dofIA2(pixel.x, pixel.y, pixel.angle, self.scale, self.image)) + 1)
         return contr
+
     def copyImage(self, image):
         theta = 0
-        width = range(image.width)
-        height = range(image.height)
+        width = range(self.scale-1, image.width-self.scale)
+        height = range(self.scale-1, image.height-self.scale)
         for i in width:
             for j in height:
                 p = PixelNode(i, j, theta, image[i, j])
@@ -28,7 +28,7 @@ class PixelArray(dict):
         self[pixel.x, pixel.y, pixel.angle] = pixel
 
     def __init__(self, filename):
-        print "Made pxNodeArray" 
+        self.scale = 3
         try:
             self.image = highgui.cvLoadImage(filename, highgui.CV_LOAD_IMAGE_GRAYSCALE)
             if(type(self.image) == NoneType):
@@ -73,4 +73,6 @@ class PixelNode(list):
 
 
 pxArray = PixelArray("circle.jpg")
-print  pxArray[5, 3, 0].contrast()
+for i in range(100-7):
+    for j in range(100-7):
+        print  pxArray[i, j, 0].contrast
