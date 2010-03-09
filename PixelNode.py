@@ -5,20 +5,24 @@ from types import NoneType
 from ImageAnalyzer import dofIA2
 
 class PixelArray(dict):
-    def contrast(self, pixel):
+    def setWeight(self, v, u, gamma):
+        weight = u.contrast + gamma*abs(v.angle - u.angle)
+        v.weight = weight
+    
+    def setContrast(self, pixel):
         T = 1
         contr = T/(abs(dofIA2(pixel.x, pixel.y, pixel.angle, self.scale, self.image)) + 1)
-        return contr
+        pixel.contrast = contr
 
-    def copyImage(self, image):
-        theta = 0
+    def copyImage(self, image, thetas):
         width = range(self.scale-1, image.width-self.scale)
         height = range(self.scale-1, image.height-self.scale)
         for i in width:
             for j in height:
-                p = PixelNode(i, j, theta, image[i, j])
-                self.addPixel(p)
-                p.contrast = self.contrast(p)
+                for theta in thetas:
+                    p = PixelNode(i, j, theta, image[i, j])
+                    self.addPixel(p)
+
 
     def getPixel(self, x, y, theta):
         return self[x, y, theta]
@@ -29,13 +33,14 @@ class PixelArray(dict):
         self.list.append(pixel)
         
 
-    def __init__(self, filename, scale):
+    def __init__(self, filename, scale, thetas):
         self.list = []
         self.scale = scale
         try:
             self.image = highgui.cvLoadImage(filename, highgui.CV_LOAD_IMAGE_GRAYSCALE)
             #Deal with borders and performing analyses.
             self.n = (self.image.width - (scale + 2)) * (self.image.height - (scale + 2))
+            self.n = self.n*len(thetas)
             if(type(self.image) == NoneType):
                 print >> sys.stderr, "  The filename provided does not exist."
                 sys.exit(1)
@@ -44,7 +49,7 @@ class PixelArray(dict):
             sys.exit(1)        
         dict.__init__(self)
         self.default = None
-        self.copyImage(self.image)
+        self.copyImage(self.image, thetas)
         
     def __getitem__(self, key):
         try:
@@ -58,6 +63,7 @@ class PixelNode(list):
     #Fill with u's and v's
     #costFromA = None #maybe?
     contrast = None
+    weight = None
 
     def __init__(self, x, y, theta, grayValue):
         self.append(x)
