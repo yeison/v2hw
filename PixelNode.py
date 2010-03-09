@@ -4,7 +4,6 @@ from opencv import highgui, cv
 from types import NoneType
 from ImageAnalyzer import dofIA2
 
-
 class PixelArray(dict):
     def contrast(self, pixel):
         T = 1
@@ -24,13 +23,19 @@ class PixelArray(dict):
     def getPixel(self, x, y, theta):
         return self[x, y, theta]
 
+
     def addPixel(self, pixel):
         self[pixel.x, pixel.y, pixel.angle] = pixel
+        self.list.append(pixel)
+        
 
-    def __init__(self, filename):
-        self.scale = 3
+    def __init__(self, filename, scale):
+        self.list = []
+        self.scale = scale
         try:
             self.image = highgui.cvLoadImage(filename, highgui.CV_LOAD_IMAGE_GRAYSCALE)
+            #Deal with borders and performing analyses.
+            self.n = (self.image.width - (scale + 2)) * (self.image.height - (scale + 2))
             if(type(self.image) == NoneType):
                 print >> sys.stderr, "  The filename provided does not exist."
                 sys.exit(1)
@@ -38,16 +43,15 @@ class PixelArray(dict):
             print >> sys.stderr, "  Please provide the name of a local image."
             sys.exit(1)        
         dict.__init__(self)
-        self.default = None            
+        self.default = None
         self.copyImage(self.image)
         
-        def __getitem__(self, key):
-            try:
-                return dict.__getitem__(self, key)
-            except KeyError:
-                print "None"
-                return self.default
-
+    def __getitem__(self, key):
+        try:
+            return dict.__getitem__(self, key)
+        except KeyError:
+            print >> sys.stderr, "  The specified pixel is not accessible.  It might not exist"
+            return self.default
 
 #A node is defined by the pixel's location and theta.
 class PixelNode(list):
@@ -72,7 +76,12 @@ class PixelNode(list):
         print "x:%s  y:%s  theta:%s  gray:%s" % (self.x, self.y, self.angle, self.grayValue)
 
 
-pxArray = PixelArray("circle.jpg")
-for i in range(100-7):
-    for j in range(100-7):
-        print  pxArray[i, j, 0].contrast
+#scale = 3
+
+#pxArray = PixelArray("circle.jpg", scale)
+
+#print "There are %s pixels" % pxArray.n
+
+#for i in range(scale, 100-scale):
+#    for j in range(scale, 100-scale):
+#        print  pxArray.contrast(pxArray[i, j, 0])
